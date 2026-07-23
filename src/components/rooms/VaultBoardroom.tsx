@@ -1,8 +1,9 @@
 import { useGame } from "@/data/store";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SectionTitle, Panel, GoldButton } from "../ui/Primitives";
 import { Vault, Droplets, Landmark, Banknote } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function TreasuryVaultView() {
   const [open, setOpen] = useState(false);
@@ -90,8 +91,8 @@ function VaultCard({ icon, label, value, sub }: { icon: React.ReactNode; label: 
   );
 }
 
-const EXECS = [
-  { role: "CEO", name: "You", stance: "Decisive" },
+const BASE_EXECS = [
+  { role: "CEO", name: "A. Sterling", stance: "Decisive" },
   { role: "CRO", name: "M. Vance", stance: "Cautious" },
   { role: "CFO", name: "L. Okafor", stance: "Pragmatic" },
   { role: "Treasurer", name: "S. Delacroix", stance: "Defensive" },
@@ -99,13 +100,35 @@ const EXECS = [
 ];
 
 export function BoardroomView() {
-  const [votes, setVotes] = useState<Record<string, "for" | "against" | null>>({});
-  const cast = () => {
-    const next: Record<string, "for" | "against"> = {};
-    EXECS.forEach((e) => (next[e.role] = Math.random() > 0.4 ? "for" : "against"));
-    setVotes(next);
-  };
-  const forCount = Object.values(votes).filter((v) => v === "for").length;
+  const userRole = useGame((s) => s.userRole) || "CEO";
+  const [userVote, setUserVote] = useState<"for" | "against" | null>(null);
+  const [otherVotes, setOtherVotes] = useState<Record<string, "for" | "against" | "pending">>({});
+  
+  useEffect(() => {
+    const next: Record<string, "for" | "against" | "pending"> = {};
+    const others = BASE_EXECS.filter((e) => e.role !== userRole);
+    const shuffled = [...others].sort(() => Math.random() - 0.5);
+    const numToVote = Math.random() > 0.5 ? 2 : 3;
+    
+    shuffled.forEach((e, i) => {
+      if (i < numToVote) {
+        next[e.role] = Math.random() > 0.4 ? "for" : "against";
+      } else {
+        next[e.role] = "pending";
+      }
+    });
+    setOtherVotes(next);
+  }, [userRole]);
+
+  const execs = BASE_EXECS.map((e) => ({
+    ...e,
+    name: e.role === userRole ? "You" : e.name,
+  }));
+
+  const allVotes = { ...otherVotes };
+  if (userVote) allVotes[userRole] = userVote;
+  
+  const forCount = Object.values(allVotes).filter((v) => v === "for").length;
 
   return (
     <div className="h-full overflow-y-auto p-8 md:p-12">
@@ -115,7 +138,7 @@ export function BoardroomView() {
         subtitle="Convene your leadership. Motion: 'Approve the Climate Resilience mandate.'"
       />
       <div className="mb-8 flex flex-wrap items-center justify-center gap-6">
-        {EXECS.map((e, i) => (
+        {execs.map((e, i) => (
           <motion.div
             key={e.role}
             initial={{ opacity: 0, y: 20 }}
@@ -129,31 +152,66 @@ export function BoardroomView() {
             <p className="font-display text-xs tracking-[0.2em] text-gold-100">{e.role}</p>
             <p className="font-serif text-sm text-slate-300">{e.name}</p>
             <p className="mt-1 font-serif text-[11px] italic text-slate-500">{e.stance}</p>
-            {votes[e.role] && (
-              <span
-                className={`mt-2 inline-block rounded-full px-3 py-0.5 font-display text-[9px] tracking-widest ${
-                  votes[e.role] === "for"
-                    ? "bg-emerald-500/20 text-emerald-300"
-                    : "bg-red-500/20 text-red-300"
-                }`}
-              >
-                {votes[e.role] === "for" ? "IN FAVOUR" : "OPPOSED"}
-              </span>
+            {e.role === userRole ? (
+              <div className="mt-2 flex items-center justify-center gap-2 h-[22px]">
+                <button
+                  onClick={() => setUserVote("for")}
+                  className={cn(
+                    "rounded-full px-2 py-0.5 font-display text-[9px] tracking-widest transition-colors",
+                    userVote === "for"
+                      ? "bg-emerald-500/30 text-emerald-300"
+                      : "bg-emerald-500/10 text-emerald-300/50 hover:bg-emerald-500/20"
+                  )}
+                >
+                  FOR
+                </button>
+                <button
+                  onClick={() => setUserVote("against")}
+                  className={cn(
+                    "rounded-full px-2 py-0.5 font-display text-[9px] tracking-widest transition-colors",
+                    userVote === "against"
+                      ? "bg-red-500/30 text-red-300"
+                      : "bg-red-500/10 text-red-300/50 hover:bg-red-500/20"
+                  )}
+                >
+                  AGAINST
+                </button>
+              </div>
+            ) : (
+              <div className="mt-2 h-[22px]">
+                {otherVotes[e.role] === "pending" ? (
+                  <span className="inline-block rounded-full bg-slate-500/20 px-3 py-0.5 font-display text-[9px] tracking-widest text-slate-300">
+                    PENDING
+                  </span>
+                ) : otherVotes[e.role] === "for" ? (
+                  <span className="inline-block rounded-full bg-emerald-500/20 px-3 py-0.5 font-display text-[9px] tracking-widest text-emerald-300">
+                    IN FAVOUR
+                  </span>
+                ) : otherVotes[e.role] === "against" ? (
+                  <span className="inline-block rounded-full bg-red-500/20 px-3 py-0.5 font-display text-[9px] tracking-widest text-red-300">
+                    OPPOSED
+                  </span>
+                ) : null}
+              </div>
             )}
           </motion.div>
         ))}
       </div>
       <div className="flex flex-col items-center gap-4">
-        <GoldButton onClick={cast}>CALL THE VOTE</GoldButton>
-        {Object.keys(votes).length > 0 && (
-          <p className="font-serif text-lg text-slate-300">
-            Motion {forCount >= 3 ? (
+        {userVote && (
+          <motion.p
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-serif text-lg text-slate-300"
+          >
+            Current Tally {forCount >= 3 ? (
               <span className="text-emerald-300">CARRIED</span>
             ) : (
-              <span className="text-red-300">REJECTED</span>
-            )}{" "}
-            — {forCount}/{EXECS.length} in favour.
-          </p>
+              <span className="text-red-300">PENDING / REJECTED</span>
+            )}
+            {" "}
+            — {forCount} in favour.
+          </motion.p>
         )}
       </div>
     </div>

@@ -1,6 +1,5 @@
 import { useGame } from "@/data/store";
 import { audio } from "@/lib/audio";
-import { ScoreBadge } from "../hud/ScoreBadge";
 import { Moon, Sun, Volume2, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -17,9 +16,7 @@ export function TopBar() {
   };
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-between p-4 md:p-6">
-      <ScoreBadge />
-
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-start justify-end p-4 md:p-6">
       <div className="pointer-events-auto flex items-center gap-2">
         <Toggle
           onClick={toggleTheme}

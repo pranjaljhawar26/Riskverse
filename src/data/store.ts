@@ -30,10 +30,15 @@ interface GameState {
   theme: ThemeMode;
   soundOn: boolean;
   introDone: boolean;
+  loginDone: boolean;
+  userRole: string;
+  userEmail: string;
   setView: (v: ViewId) => void;
   toggleTheme: () => void;
   toggleSound: () => void;
   finishIntro: () => void;
+  finishLogin: (role: string, email: string) => void;
+  logout: () => void;
 
   // metrics + bank
   metrics: Metrics;
@@ -83,11 +88,29 @@ export const useGame = create<GameState>((set, get) => ({
   theme: "night",
   soundOn: false,
   introDone: false,
+  loginDone: false,
+  userRole: "",
+  userEmail: "",
   setView: (view) => set({ view }),
   toggleTheme: () =>
     set((s) => ({ theme: s.theme === "night" ? "day" : "night" })),
   toggleSound: () => set((s) => ({ soundOn: !s.soundOn })),
   finishIntro: () => set({ introDone: true }),
+  finishLogin: (role, email) => set((s) => ({
+    loginDone: true,
+    userRole: role,
+    userEmail: email,
+    athenaNotes: [
+      {
+        id: "seed-1",
+        title: `${role}, we have a situation.`,
+        body: "Climate exposure is increasing. Review the California CRE portfolio before the board convenes.",
+        tone: "warning",
+        ts: Date.now(),
+      }
+    ]
+  })),
+  logout: () => set({ introDone: false, loginDone: false, userRole: "", userEmail: "", view: "office", athenaNotes: [] }),
 
   metrics: { ...initialMetrics },
   bank: { ...initialBank },
@@ -144,15 +167,7 @@ export const useGame = create<GameState>((set, get) => ({
     });
   },
 
-  athenaNotes: [
-    {
-      id: "seed-1",
-      title: "CEO, we have a situation.",
-      body: "Climate exposure is increasing. Review the California CRE portfolio before the board convenes.",
-      tone: "warning",
-      ts: Date.now(),
-    },
-  ],
+  athenaNotes: [],
   decisions: [],
   pushAthena: (n) =>
     set((s) => ({

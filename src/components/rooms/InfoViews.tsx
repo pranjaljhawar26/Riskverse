@@ -28,13 +28,12 @@ export function NewsView() {
             className="flex items-center gap-4 rounded-xl glass p-4"
           >
             <span
-              className={`rounded px-2 py-1 font-display text-[9px] tracking-[0.2em] ${
-                h.tone === "bad"
+              className={`rounded px-2 py-1 font-display text-[9px] tracking-[0.2em] ${h.tone === "bad"
                   ? "bg-red-500/20 text-red-300"
                   : h.tone === "good"
                     ? "bg-emerald-500/20 text-emerald-300"
                     : "bg-gold-400/15 text-gold-200"
-              }`}
+                }`}
             >
               {h.tag}
             </span>
@@ -132,13 +131,14 @@ export function SettingsView() {
           value="Reload the simulation"
           icon={<RotateCcw size={18} />}
           onClick={() => location.reload()}
+          actionLabel="RELOAD ▸"
         />
       </div>
     </div>
   );
 }
 
-function Row({ label, value, icon, onClick }: { label: string; value: string; icon: React.ReactNode; onClick: () => void }) {
+function Row({ label, value, icon, onClick, actionLabel = "TOGGLE ▸" }: { label: string; value: string; icon: React.ReactNode; onClick: () => void; actionLabel?: string }) {
   return (
     <button
       onClick={onClick}
@@ -151,7 +151,7 @@ function Row({ label, value, icon, onClick }: { label: string; value: string; ic
           <p className="font-serif text-sm text-slate-400">{value}</p>
         </div>
       </div>
-      <span className="font-display text-[10px] tracking-widest text-gold-300">TOGGLE ▸</span>
+      <span className="font-display text-[10px] tracking-widest text-gold-300">{actionLabel}</span>
     </button>
   );
 }

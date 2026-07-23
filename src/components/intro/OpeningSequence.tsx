@@ -113,30 +113,6 @@ export function OpeningSequence() {
           )}
         </AnimatePresence>
 
-        {/* Athena note */}
-        <AnimatePresence>
-          {stage >= 6 && (
-            <motion.div
-              className="absolute bottom-24 right-16 w-72"
-              initial={{ opacity: 0, rotate: -6, y: 40 }}
-              animate={{ opacity: 1, rotate: -3, y: 0 }}
-              transition={{ duration: 1 }}
-            >
-              <div className="paper rounded-sm p-5 shadow-note">
-                <div className="mb-2 flex items-center gap-2 text-gold-600">
-                  <Sparkles size={16} />
-                  <span className="font-display text-[10px] tracking-[0.3em]">
-                    ATHENA
-                  </span>
-                </div>
-                <p className="font-hand text-2xl leading-tight text-[#22201a]">
-                  CEO, we have a situation.
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Enter button */}
         <AnimatePresence>
           {stage >= 7 && (

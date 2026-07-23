@@ -3,6 +3,7 @@ import { useGame } from "@/data/store";
 import { LeftNav } from "@/components/layout/LeftNav";
 import { TopBar } from "@/components/layout/TopBar";
 import { OpeningSequence } from "@/components/intro/OpeningSequence";
+import { LoginScreen } from "@/components/intro/LoginScreen";
 import { OfficeScene } from "@/components/office/OfficeScene";
 import { StrategicBoard } from "@/components/board/StrategicBoard";
 import { InvestigationMode } from "@/components/board/InvestigationMode";
@@ -32,9 +33,8 @@ export default function App() {
 
   return (
     <div
-      className={`relative h-screen w-screen overflow-hidden font-sans ${
-        theme === "night" ? "bg-navy-950" : "bg-navy-900"
-      }`}
+      className={`relative h-screen w-screen overflow-hidden font-sans ${theme === "night" ? "bg-navy-950" : "bg-navy-900"
+        }`}
     >
       <div className="noise absolute inset-0" />
 
@@ -60,6 +60,7 @@ export default function App() {
 
       <InvestigationMode />
       <OpeningSequence />
+      <LoginScreen />
     </div>
   );
 }

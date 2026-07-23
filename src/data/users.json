@@ -1,0 +1,54 @@
+{
+  "users": [
+    {
+      "role": "CEO",
+      "email": "12345@db.com",
+      "password": "password123"
+    },
+    {
+      "role": "CEO",
+      "email": "098709@db.com",
+      "password": "admin"
+    },
+    {
+      "role": "CRO",
+      "email": "567834@db.com",
+      "password": "password123"
+    },
+    {
+      "role": "CRO",
+      "email": "345612@db.com",
+      "password": "admin"
+    },
+    {
+      "role": "CFO",
+      "email": "243682@db.com",
+      "password": "password123"
+    },
+    {
+      "role": "CFO",
+      "email": "193847@db.com",
+      "password": "admin"
+    },
+    {
+      "role": "Treasurer",
+      "email": "684723@db.com",
+      "password": "password123"
+    },
+    {
+      "role": "Treasurer",
+      "email": "739208@db.com",
+      "password": "admin"
+    },
+    {
+      "role": "Head of Risk",
+      "email": "384912@db.com",
+      "password": "password123"
+    },
+    {
+      "role": "Head of Risk",
+      "email": "492013@db.com",
+      "password": "admin"
+    }
+  ]
+}

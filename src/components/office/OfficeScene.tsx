@@ -1,7 +1,7 @@
 import { useGame } from "@/data/store";
 import { Rain, Skyline } from "../atmosphere/Atmosphere";
-import { motion } from "framer-motion";
-import { Coffee, Newspaper, Award } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Award, Sparkles } from "lucide-react";
 
 /** The executive office homepage — floor-to-ceiling windows, desk, lamp, poster. */
 export function OfficeScene() {
@@ -10,6 +10,7 @@ export function OfficeScene() {
   const mood = useGame((s) => s.mood());
   const decisions = useGame((s) => s.decisions);
   const score = useGame((s) => s.score());
+  const athenaNotes = useGame((s) => s.athenaNotes);
   const night = theme === "night";
 
   // Dynamic evolution: awards for good scores, clutter for crisis
@@ -89,16 +90,6 @@ export function OfficeScene() {
 
         {/* Desk items */}
         <div className="absolute bottom-10 left-1/2 flex -translate-x-1/2 items-end gap-6">
-          <DeskItem
-            icon={<Newspaper size={22} />}
-            label="THE FINANCIAL LEDGER"
-            onClick={() => setView("news")}
-          />
-          <DeskItem
-            icon={<Coffee size={22} />}
-            label="ESPRESSO"
-            onClick={() => {}}
-          />
           {cluttered &&
             Array.from({ length: 3 }).map((_, i) => (
               <div
@@ -137,31 +128,34 @@ export function OfficeScene() {
           APPROACH THE STRATEGIC BOARD
         </motion.button>
       </div>
+
+      {/* Athena note */}
+      <AnimatePresence>
+        {athenaNotes.length > 0 && (
+          <motion.div
+            className="absolute bottom-24 right-16 w-72 z-50 pointer-events-none"
+            initial={{ opacity: 0, rotate: -6, y: 40 }}
+            animate={{ opacity: 1, rotate: -3, y: 0 }}
+            transition={{ duration: 1, delay: 1.5 }}
+          >
+            <div 
+              className="paper rounded-sm p-5 shadow-note pointer-events-auto cursor-pointer transition-transform hover:scale-105"
+              onClick={() => setView("athena")}
+            >
+              <div className="mb-2 flex items-center gap-2 text-gold-600">
+                <Sparkles size={16} />
+                <span className="font-display text-[10px] tracking-[0.3em]">
+                  ATHENA
+                </span>
+              </div>
+              <p className="font-hand text-2xl leading-tight text-[#22201a]">
+                {athenaNotes[0].title}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function DeskItem({
-  icon,
-  label,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <motion.button
-      whileHover={{ y: -6, scale: 1.05 }}
-      onClick={onClick}
-      className="group flex flex-col items-center gap-2"
-    >
-      <div className="grid h-14 w-14 place-items-center rounded-xl border border-gold-400/25 bg-navy-900/70 text-gold-300 shadow-note backdrop-blur transition-colors group-hover:border-gold-300/60 group-hover:text-gold-200">
-        {icon}
-      </div>
-      <span className="font-display text-[8px] tracking-[0.25em] text-slate-400 group-hover:text-gold-200">
-        {label}
-      </span>
-    </motion.button>
-  );
-}

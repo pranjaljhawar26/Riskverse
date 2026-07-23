@@ -1,7 +1,8 @@
 import { useGame } from "@/data/store";
 import type { ViewId } from "@/data/types";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
   ClipboardList,
@@ -13,13 +14,15 @@ import {
   Sparkles,
   Vault,
   Layers,
+  LogOut,
+  UserCircle
 } from "lucide-react";
 
 const ITEMS: { id: ViewId; label: string; icon: React.ReactNode }[] = [
   { id: "office", label: "Office", icon: <Building2 size={18} /> },
   { id: "board", label: "Strategic Board", icon: <Layers size={18} /> },
   { id: "scenarios", label: "Scenarios", icon: <ClipboardList size={18} /> },
-  { id: "warroom", label: "War Room", icon: <ShieldAlert size={18} /> },
+  { id: "warroom", label: "Crisis Command Centre", icon: <ShieldAlert size={18} /> },
   { id: "vault", label: "Treasury Vault", icon: <Vault size={18} /> },
   { id: "boardroom", label: "Boardroom", icon: <Crown size={18} /> },
   { id: "news", label: "Market News", icon: <Newspaper size={18} /> },
@@ -31,6 +34,10 @@ const ITEMS: { id: ViewId; label: string; icon: React.ReactNode }[] = [
 export function LeftNav() {
   const view = useGame((s) => s.view);
   const setView = useGame((s) => s.setView);
+  const userRole = useGame((s) => s.userRole);
+  const userEmail = useGame((s) => s.userEmail);
+  const logout = useGame((s) => s.logout);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   return (
     <nav className="relative z-30 flex h-full w-[76px] flex-col items-center gap-1 border-r border-gold-500/15 bg-navy-950/70 py-5 backdrop-blur-xl md:w-[228px] md:items-stretch md:px-3">
@@ -77,9 +84,55 @@ export function LeftNav() {
         })}
       </div>
 
-      <p className="mt-4 hidden px-2 font-serif text-[11px] italic text-slate-500 md:block">
-        “Tomorrow the world might change — and you're responsible.”
-      </p>
+      <div className="mt-auto pt-4 md:px-2 flex flex-col gap-2 relative">
+        {userEmail && (
+          <div className="relative">
+            <AnimatePresence>
+              {showProfileMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-xl border border-gold-400/20 bg-navy-900 shadow-note backdrop-blur-xl"
+                >
+                  <button
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left font-display text-[10px] tracking-widest text-slate-300 transition-colors hover:bg-white/5 hover:text-gold-200"
+                    onClick={() => setShowProfileMenu(false)}
+                  >
+                    <UserCircle size={14} />
+                    UPDATE PROFILE
+                  </button>
+                  <div className="h-px bg-white/5" />
+                  <button
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left font-display text-[10px] tracking-widest text-red-400 transition-colors hover:bg-white/5 hover:text-red-300"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      logout();
+                    }}
+                  >
+                    <LogOut size={14} />
+                    LOG OUT
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="hidden w-full text-left rounded-lg bg-navy-900/50 p-2 md:block transition-colors hover:bg-navy-900/80"
+            >
+              <p className="font-display text-[10px] tracking-widest text-gold-300/80">
+                {userRole.toUpperCase()}
+              </p>
+              <p className="font-mono text-[9px] text-slate-500">
+                {userEmail}
+              </p>
+            </button>
+          </div>
+        )}
+        <p className="hidden font-serif text-[11px] italic text-slate-500 md:block">
+          “Tomorrow the world might change — and you're responsible.”
+        </p>
+      </div>
     </nav>
   );
 }
