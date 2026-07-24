@@ -44,8 +44,24 @@ Then open the URL Vite prints (default http://localhost:5173).
 
 ### ATHENA chat setup
 
-Create a `.env.local` file in this folder and add your API key. This file stays on
-your machine and must never be committed.
+Create a `.env.local` file in this folder and add your provider configuration. This
+file stays on your machine and must never be committed.
+
+#### Microsoft Azure OpenAI (recommended for Azure keys)
+
+```env
+AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE-NAME.openai.azure.com
+AZURE_OPENAI_API_KEY=your_azure_openai_key_here
+# This is the deployment name you created in Azure, not necessarily the model name.
+AZURE_OPENAI_DEPLOYMENT=your-deployment-name
+# Optional: defaults to v1
+AZURE_OPENAI_API_VERSION=v1
+```
+
+When `AZURE_OPENAI_ENDPOINT` is set, ATHENA sends requests to Azure OpenAI with the
+Azure `api-key` header. The browser never receives the key.
+
+#### OpenAI (existing alternative)
 
 ```env
 OPENAI_API_KEY=your_api_key_here
