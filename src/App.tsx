@@ -9,8 +9,15 @@ import { StrategicBoard } from "@/components/board/StrategicBoard";
 import { InvestigationMode } from "@/components/board/InvestigationMode";
 import { AthenaView } from "@/components/athena/AthenaView";
 import { ScenariosView, WarRoomView } from "@/components/rooms/WarRoomViews";
-import { TreasuryVaultView, BoardroomView } from "@/components/rooms/VaultBoardroom";
-import { NewsView, ReportsView, SettingsView } from "@/components/rooms/InfoViews";
+import {
+  TreasuryVaultView,
+  BoardroomView,
+} from "@/components/rooms/VaultBoardroom";
+import {
+  NewsView,
+  ReportsView,
+  SettingsView,
+} from "@/components/rooms/InfoViews";
 import type { ViewId } from "@/data/types";
 
 const VIEWS: Record<ViewId, () => JSX.Element> = {
@@ -33,8 +40,11 @@ export default function App() {
 
   return (
     <div
-      className={`relative h-screen w-screen overflow-hidden font-sans ${theme === "night" ? "bg-navy-950" : "bg-navy-900"
-        }`}
+      className={`relative h-screen w-screen overflow-hidden font-sans transition-colors duration-1000 ${
+        theme === "night"
+          ? "bg-navy-950 text-[#e7e2d4]"
+          : "bg-[#e2edf8] text-[#1e293b]"
+      }`}
     >
       <div className="noise absolute inset-0" />
 

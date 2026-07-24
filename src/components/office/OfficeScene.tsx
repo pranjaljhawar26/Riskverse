@@ -31,16 +31,22 @@ export function OfficeScene() {
         </div>
       </div>
 
-      {/* Warm room overlay */}
+      {/* Warm room overlay (Brighter, sun-washed gradients for Day Mode) */}
       <div
         className="absolute inset-0 transition-all duration-1000"
         style={{
           background: night
             ? "radial-gradient(circle at 78% 78%, rgba(255,179,71,0.16), transparent 45%), linear-gradient(180deg, transparent 40%, #05060fee 100%)"
-            : "radial-gradient(circle at 50% 20%, rgba(255,244,214,0.25), transparent 50%), linear-gradient(180deg, transparent 55%, #0a1024cc 100%)",
+            : "radial-gradient(circle at 20% 30%, rgba(255,255,255,0.95) 0%, rgba(255,244,214,0.45) 45%, transparent 75%), linear-gradient(180deg, rgba(186,215,242,0.5) 0%, #f4f6fdee 100%)",
         }}
       />
-      <div className="pointer-events-none absolute inset-0 vignette" />
+
+      {/* Vignette - heavily dimmed and softened in Daylight to allow high light exposure */}
+      <div
+        className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 vignette ${
+          night ? "opacity-100" : "opacity-35"
+        }`}
+      />
 
       {/* Framed poster on wall */}
       <motion.div
@@ -138,7 +144,7 @@ export function OfficeScene() {
             animate={{ opacity: 1, rotate: -3, y: 0 }}
             transition={{ duration: 1, delay: 1.5 }}
           >
-            <div 
+            <div
               className="paper rounded-sm p-5 shadow-note pointer-events-auto cursor-pointer transition-transform hover:scale-105"
               onClick={() => setView("athena")}
             >
@@ -158,4 +164,3 @@ export function OfficeScene() {
     </div>
   );
 }
-

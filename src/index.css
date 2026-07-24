@@ -64,18 +64,19 @@ body {
 
   .paper {
     background-color: #f3ecd8;
-    background-image: radial-gradient(
-        rgba(0, 0, 0, 0.04) 1px,
-        transparent 1px
-      ),
+    background-image:
+      radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
       linear-gradient(rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.02));
-    background-size: 14px 14px, 100% 100%;
+    background-size:
+      14px 14px,
+      100% 100%;
     color: #22201a;
   }
 
   .cork {
     background-color: #7a5230;
-    background-image: radial-gradient(
+    background-image:
+      radial-gradient(
         circle at 30% 30%,
         rgba(0, 0, 0, 0.18) 0.8px,
         transparent 1px
@@ -85,12 +86,18 @@ body {
         rgba(255, 255, 255, 0.05) 0.8px,
         transparent 1px
       );
-    background-size: 9px 9px, 11px 11px;
+    background-size:
+      9px 9px,
+      11px 11px;
   }
 
   .leather {
     background:
-      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.04), transparent 60%),
+      radial-gradient(
+        circle at 20% 20%,
+        rgba(255, 255, 255, 0.04),
+        transparent 60%
+      ),
       linear-gradient(145deg, #14100c, #1f1710 60%, #0d0a07);
   }
 

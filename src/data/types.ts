@@ -12,7 +12,6 @@ export type ViewId =
 
 export type ThemeMode = "day" | "night";
 
-/** The six pillars that build the Executive Score. */
 export interface Metrics {
   profitability: number;
   risk: number;
@@ -22,40 +21,52 @@ export interface Metrics {
   esg: number;
 }
 
-/** Board-level financial figures (sticky notes). */
 export interface BankState {
-  cet1: number; // %
-  lcr: number; // %
-  sharePrice: number; // $
-  loanBook: number; // $B
-  deposits: number; // $B
-  customerConfidence: number; // %
+  cet1: number;
+  lcr: number;
+  sharePrice: number;
+  loanBook: number;
+  deposits: number;
+  customerConfidence: number;
   esgRating: string;
   mrel: string;
+  netProfit?: number;
+  creditRiskIndex?: number;
+  marketRiskIndex?: number;
+  reputationScore?: number;
+  esgScore?: number;
 }
 
 export type EventCategory =
-  | "natural"
   | "climate"
-  | "health"
-  | "geopolitical"
-  | "economic"
-  | "banking"
-  | "technology"
+  | "financial"
   | "regulatory"
-  | "blackswan";
+  | "tech"
+  | "additional";
 
 export type Severity = "low" | "medium" | "high" | "critical" | "endgame";
+
+export interface KpiImpacts {
+  cet1?: number;
+  lcr?: number;
+  loanBook?: number;
+  deposits?: number;
+  sharePrice?: number;
+  esg?: number;
+  esgScore?: number; // <--- Added missing property
+  customerConfidence?: number;
+  netProfit?: number;
+  creditRiskIndex?: number;
+  marketRiskIndex?: number;
+  reputationScore?: number;
+}
 
 export interface DecisionOption {
   id: string;
   label: string;
   description: string;
-  /** Deltas applied to metrics when chosen. */
   effects: Partial<Metrics>;
-  /** Deltas applied to bank figures. */
   bank?: Partial<BankState>;
-  /** Athena's reaction to the choice. */
   athenaNote: string;
 }
 
@@ -65,13 +76,15 @@ export interface GameEvent {
   title: string;
   category: EventCategory;
   severity: Severity;
-  probability: number; // 0..1 weight
-  lateGame?: boolean;
+  probability: number;
   headline: string;
   summary: string;
+  narrative: string;
   impacts: string[];
-  creditImpact: string; // e.g. "-$750m"
-  plImpact: string; // e.g. "-2.1%"
-  horizon: string; // e.g. "3-4 Quarters"
+  industries: string[];
+  kpiImpacts: KpiImpacts;
+  creditImpact: string;
+  plImpact: string;
+  horizon: string;
   options: DecisionOption[];
 }
