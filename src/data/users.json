@@ -2,13 +2,13 @@
   "users": [
     {
       "role": "CEO",
-      "email": "12345@db.com",
+      "email": "harve.specter@db.com",
       "password": "password123"
     },
     {
       "role": "CEO",
-      "email": "098709@db.com",
-      "password": "admin"
+      "email": "12345@db.com",
+      "password": "password123"
     },
     {
       "role": "CRO",

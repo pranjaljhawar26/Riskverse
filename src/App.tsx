@@ -20,8 +20,12 @@ import {
 } from "@/components/rooms/InfoViews";
 import type { ViewId } from "@/data/types";
 
+import { ExecutiveCommandDesk } from "@/components/office/ExecutiveCommandDesk";
+
+// Update the VIEWS dictionary map:
+
 const VIEWS: Record<ViewId, () => JSX.Element> = {
-  office: OfficeScene,
+  office: ExecutiveCommandDesk, // <--- Set as primary CEO Command Desk!
   board: StrategicBoard,
   scenarios: ScenariosView,
   warroom: WarRoomView,

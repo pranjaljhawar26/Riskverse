@@ -96,21 +96,30 @@ export const useGame = create<GameState>((set, get) => ({
     set((s) => ({ theme: s.theme === "night" ? "day" : "night" })),
   toggleSound: () => set((s) => ({ soundOn: !s.soundOn })),
   finishIntro: () => set({ introDone: true }),
-  finishLogin: (role, email) => set((s) => ({
-    loginDone: true,
-    userRole: role,
-    userEmail: email,
-    athenaNotes: [
-      {
-        id: "seed-1",
-        title: `${role}, we have a situation.`,
-        body: "Climate exposure is increasing. Review the California CRE portfolio before the board convenes.",
-        tone: "warning",
-        ts: Date.now(),
-      }
-    ]
-  })),
-  logout: () => set({ introDone: false, loginDone: false, userRole: "", userEmail: "", view: "office", athenaNotes: [] }),
+  finishLogin: (role, email) =>
+    set((s) => ({
+      loginDone: true,
+      userRole: role,
+      userEmail: email,
+      athenaNotes: [
+        {
+          id: "seed-1",
+          title: `${role}, we have a situation.`,
+          body: "Climate exposure is increasing. Review the California CRE portfolio before the board convenes.",
+          tone: "warning",
+          ts: Date.now(),
+        },
+      ],
+    })),
+  logout: () =>
+    set({
+      introDone: false,
+      loginDone: false,
+      userRole: "",
+      userEmail: "",
+      view: "office",
+      athenaNotes: [],
+    }),
 
   metrics: { ...initialMetrics },
   bank: { ...initialBank },
@@ -201,10 +210,30 @@ export const useGame = create<GameState>((set, get) => ({
 
   mood: () => {
     const m = get().metrics;
-    const avg =
-      (m.risk + m.capital + m.liquidity + m.reputation) / 4;
-    if (avg < 55) return "crisis";
-    if (avg < 68) return "tense";
+    const events = get().events;
+    const decisions = get().decisions;
+
+    // Track unresolved events
+    const resolvedTitles = new Set(decisions.map((d) => d.eventTitle));
+    const unresolvedEvents = events.filter((e) => !resolvedTitles.has(e.title));
+
+    // Check if any critical / endgame / high severity threats exist
+    const hasCriticalThreat = unresolvedEvents.some(
+      (e) =>
+        e.severity === "critical" ||
+        e.severity === "endgame" ||
+        e.severity === "high",
+    );
+
+    const avg = (m.risk + m.capital + m.liquidity + m.reputation) / 4;
+
+    // Escalate mood to 'crisis' if active critical threats exist or average metrics are low
+    if (unresolvedEvents.length >= 3 || hasCriticalThreat || avg < 55) {
+      return "crisis";
+    }
+    if (unresolvedEvents.length > 0 || avg < 68) {
+      return "tense";
+    }
     return "calm";
   },
 }));

@@ -1,88 +1,21 @@
 import { useState, useMemo } from "react";
 import { useGame } from "@/data/store";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   MapPin,
   Search,
   RotateCcw,
   Play,
-  AlertCircle,
   Sparkles,
   Paperclip,
-  FileText,
   Eye,
-  Flame,
+  CheckCircle2,
+  TrendingUp,
+  ArrowUpRight,
   ShieldAlert,
 } from "lucide-react";
 import type { GameEvent } from "@/data/types";
 import { ScenarioSequenceModal } from "./ScenarioSequenceModal";
-
-interface StickyData {
-  id: string;
-  label: string;
-  value: string;
-  color: string;
-  x: number;
-  y: number;
-  rot: number;
-}
-
-const STICKIES: StickyData[] = [
-  {
-    id: "cet1",
-    label: "CET1 Ratio",
-    value: "14.3%",
-    color: "#fde68a",
-    x: 6,
-    y: 10,
-    rot: -4,
-  },
-  {
-    id: "lcr",
-    label: "LCR",
-    value: "152%",
-    color: "#bbf7d0",
-    x: 20,
-    y: 6,
-    rot: 3,
-  },
-  {
-    id: "mrel",
-    label: "MREL",
-    value: "ABOVE",
-    color: "#fde68a",
-    x: 35,
-    y: 11,
-    rot: -2,
-  },
-  {
-    id: "conf",
-    label: "Customer Confidence",
-    value: "82%",
-    color: "#fecaca",
-    x: 74,
-    y: 9,
-    rot: 3,
-  },
-  {
-    id: "share",
-    label: "Share Price",
-    value: "$102.45",
-    color: "#e0e7ff",
-    x: 6,
-    y: 68,
-    rot: 2,
-  },
-  {
-    id: "esg",
-    label: "ESG Score",
-    value: "72/100",
-    color: "#dcfce7",
-    x: 80,
-    y: 66,
-    rot: -3,
-  },
-];
 
 const CATEGORIES: { id: string; label: string }[] = [
   { id: "all", label: "ALL" },
@@ -94,6 +27,7 @@ const CATEGORIES: { id: string; label: string }[] = [
 
 export function StrategicBoard() {
   const events = useGame((s) => s.events);
+  const bank = useGame((s) => s.bank);
   const mood = useGame((s) => s.mood());
 
   const [search, setSearch] = useState("");
@@ -117,6 +51,38 @@ export function StrategicBoard() {
 
   const droppedEvents = events.filter((e) => droppedIds.includes(e.id));
 
+  // Compute aggregated impacts for single merged whiteboard card
+  const aggregatedImpactSummary = useMemo(() => {
+    if (droppedEvents.length === 0) return null;
+
+    const totalCreditLoss = droppedEvents.reduce((acc, ev) => {
+      const val = parseFloat(ev.creditImpact.replace(/[^0-9.]/g, "")) || 0;
+      return acc + val;
+    }, 0);
+
+    const mergedImpacts = Array.from(
+      new Set(droppedEvents.flatMap((e) => e.impacts || [])),
+    );
+    const mergedIndustries = Array.from(
+      new Set(droppedEvents.flatMap((e) => e.industries || [])),
+    );
+
+    return {
+      title:
+        droppedEvents.length === 1
+          ? droppedEvents[0].title
+          : `COMPOUND RISK DECK (${droppedEvents.length} SCENARIOS)`,
+      headline:
+        droppedEvents.length === 1
+          ? droppedEvents[0].headline
+          : `${droppedEvents.length} OVERLAPPING SYSTEMIC HAZARDS DETECTED`,
+      totalCreditLoss:
+        totalCreditLoss > 0 ? `-€${totalCreditLoss.toFixed(0)}M` : "-€750M",
+      impacts: mergedImpacts.slice(0, 4),
+      industries: mergedIndustries,
+    };
+  }, [droppedEvents]);
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
@@ -133,9 +99,9 @@ export function StrategicBoard() {
   };
 
   return (
-    <div className="relative h-full w-full overflow-hidden p-3 md:p-6 flex flex-col md:flex-row gap-4">
+    <div className="relative h-full w-full overflow-hidden p-2 md:p-4 flex flex-col md:flex-row gap-4 bg-[#080b14] text-slate-100 font-sans">
       {/* SIDEBAR SCENARIOS CATALOG */}
-      <div className="w-full md:w-80 shrink-0 flex flex-col gap-3 glass rounded-2xl p-4 overflow-hidden max-h-[88vh]">
+      <div className="w-full md:w-72 shrink-0 flex flex-col gap-2 glass rounded-2xl p-3 overflow-hidden max-h-[88vh]">
         <div className="flex items-center justify-between border-b border-gold-500/15 pb-2">
           <p className="font-display text-xs tracking-widest text-gold-300">
             EXPLORE SCENARIOS
@@ -152,7 +118,7 @@ export function StrategicBoard() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search scenarios..."
-            className="w-full rounded-xl border border-slate-700 bg-navy-950/60 py-2 pl-9 pr-3 font-sans text-xs text-slate-200 outline-none focus:border-gold-400/50"
+            className="w-full rounded-xl border border-slate-700 bg-navy-950/60 py-1.5 pl-9 pr-3 font-sans text-xs text-slate-200 outline-none focus:border-gold-400/50"
           />
         </div>
 
@@ -162,9 +128,9 @@ export function StrategicBoard() {
             <button
               key={cat.id}
               onClick={() => setActiveTab(cat.id)}
-              className={`rounded-lg px-2 py-1 font-display text-[9px] tracking-wider transition-all ${
+              className={`rounded-lg px-2 py-0.5 font-display text-[9px] tracking-wider transition-all ${
                 activeTab === cat.id
-                  ? "bg-gold-400 text-navy-950 font-bold"
+                  ? "bg-gold-400 text-navy-950 font-bold shadow-gold"
                   : "bg-white/5 text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -185,7 +151,7 @@ export function StrategicBoard() {
                 onClick={() => {
                   if (!isDropped) setDroppedIds((p) => [...p, ev.id]);
                 }}
-                className={`cursor-grab rounded-xl border p-3 transition-all ${
+                className={`cursor-grab rounded-xl border p-2.5 transition-all ${
                   isDropped
                     ? "border-gold-400/60 bg-gold-500/15 text-gold-100 shadow-sm"
                     : "border-white/10 bg-navy-950/60 text-slate-300 hover:border-gold-400/30"
@@ -199,7 +165,7 @@ export function StrategicBoard() {
                     {ev.category}
                   </span>
                 </div>
-                <p className="mt-1 font-serif text-[11px] text-slate-400 line-clamp-2">
+                <p className="mt-1 font-serif text-[10px] text-slate-400 line-clamp-2">
                   {ev.summary}
                 </p>
               </div>
@@ -208,15 +174,15 @@ export function StrategicBoard() {
         </div>
       </div>
 
-      {/* CORKBOARD / WHITEBOARD CANVAS */}
+      {/* CORKBOARD CANVAS CONTAINER */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Top Control Header */}
-        <div className="mb-2 flex items-center justify-between glass px-4 py-2 rounded-xl">
+        {/* Top Control Bar */}
+        <div className="mb-2 flex items-center justify-between glass px-4 py-1.5 rounded-xl">
           <div className="flex items-center gap-3">
             <span className="font-display text-xs text-gold-300 font-bold">
               TURN 4 / 12
             </span>
-            <span className="font-serif text-xs text-slate-400 italic hidden sm:inline">
+            <span className="font-serif text-xs text-slate-300 italic hidden sm:inline">
               "Tomorrow the world might change and you're responsible."
             </span>
           </div>
@@ -239,7 +205,7 @@ export function StrategicBoard() {
           )}
         </div>
 
-        {/* Corkboard Drop Zone */}
+        {/* RESTORED INITIAL DARK CORKBOARD CANVAS */}
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -247,181 +213,463 @@ export function StrategicBoard() {
           }}
           onDragLeave={() => setIsDragOver(false)}
           onDrop={handleDrop}
-          className={`cork relative flex-1 rounded-2xl border-[10px] border-[#3a2413] shadow-2xl overflow-hidden transition-all ${
+          className={`cork relative flex-1 rounded-2xl border-[10px] border-[#3a2413] shadow-[0_20px_80px_rgba(0,0,0,0.8)] overflow-hidden select-none transition-all ${
             isDragOver ? "ring-4 ring-gold-400" : ""
           } ${mood === "crisis" ? "animate-crisisPulse" : ""}`}
         >
-          {/* Dynamic Red String Network (SVG) */}
+          {/* RED STRATEGIC CONNECTING STRINGS (SVG) */}
           <svg className="pointer-events-none absolute inset-0 h-full w-full">
-            {/* Strings from stickies to central watch out oval */}
-            <line
-              x1="12%"
-              y1="18%"
-              x2="48%"
-              y2="52%"
+            <defs>
+              <marker
+                id="arrow"
+                viewBox="0 0 10 10"
+                refX="5"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626" />
+              </marker>
+            </defs>
+
+            {/* Red string network connecting prominent scenario card to risk nodes */}
+            <path
+              d="M 520 280 L 680 180"
               stroke="#dc2626"
               strokeWidth="2"
-              strokeOpacity="0.75"
+              strokeOpacity="0.85"
+              markerEnd="url(#arrow)"
             />
-            <line
-              x1="26%"
-              y1="14%"
-              x2="48%"
-              y2="52%"
+            <path
+              d="M 580 320 L 710 240"
               stroke="#dc2626"
               strokeWidth="2"
-              strokeOpacity="0.75"
+              strokeOpacity="0.85"
+              markerEnd="url(#arrow)"
             />
-            <line
-              x1="48%"
-              y1="52%"
-              x2="78%"
-              y2="16%"
+            <path
+              d="M 580 380 L 700 410"
+              stroke="#dc2626"
+              strokeWidth="2"
+              strokeOpacity="0.85"
+              markerEnd="url(#arrow)"
+            />
+            <path
+              d="M 380 260 L 260 210"
               stroke="#dc2626"
               strokeWidth="1.5"
               strokeOpacity="0.6"
               strokeDasharray="4 2"
             />
-            <line
-              x1="48%"
-              y1="52%"
-              x2="22%"
-              y2="72%"
-              stroke="#dc2626"
-              strokeWidth="1.5"
-              strokeOpacity="0.6"
-            />
-            <line
-              x1="48%"
-              y1="52%"
-              x2="78%"
-              y2="72%"
-              stroke="#dc2626"
-              strokeWidth="1.5"
-              strokeOpacity="0.6"
-            />
           </svg>
 
-          {/* Sticky Notes Pinned Across Corkboard */}
-          {STICKIES.map((s) => (
-            <div
-              key={s.id}
-              className="absolute w-28 p-2.5 text-left shadow-note select-none transition-transform hover:scale-105"
-              style={{
-                left: `${s.x}%`,
-                top: `${s.y}%`,
-                background: s.color,
-                transform: `rotate(${s.rot}deg)`,
-              }}
-            >
-              <Pin />
-              <p className="font-hand text-[11px] font-bold text-neutral-700">
-                {s.label}
-              </p>
-              <p className="font-hand text-lg font-bold text-neutral-900">
-                {s.value}
-              </p>
-            </div>
-          ))}
-
-          {/* ATHENA TACTICAL BRIEFING MEMO (PINNED PAPER PAGE) */}
-          <div className="absolute right-6 top-16 w-52 paper rounded p-3 shadow-2xl rotate-2 select-none border border-neutral-400">
-            <Pin color="gold" />
-            <div className="flex items-center gap-1.5 text-gold-700 mb-1 border-b border-neutral-300 pb-1">
-              <Sparkles size={14} />
-              <span className="font-display text-[9px] tracking-widest font-bold">
-                ATHENA AI MEMO
-              </span>
-            </div>
-            <p className="font-pen text-[12px] text-neutral-800 leading-snug">
-              "Climate risk vectors interacting with CRE books. Review insurance
-              counterparty exposure before board convene."
-            </p>
+          {/* BOARD TITLE */}
+          <div className="absolute left-1/2 top-2 -translate-x-1/2 text-center">
+            <h1 className="font-hand text-xl font-bold tracking-wider text-amber-100 uppercase border-b-2 border-amber-500/30 pb-0.5">
+              ← Executive Strategic Overview →
+            </h1>
           </div>
 
-          {/* WATCH OUT Risk Stamp Circle Overlay */}
-          {droppedEvents.length >= 1 && (
-            <div className="absolute left-[48%] top-[52%] -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none">
-              <div className="h-32 w-60 rounded-full border-4 border-red-600/80 p-2 flex flex-col items-center justify-center rotate-[-5deg] bg-red-950/20 backdrop-blur-[1px] shadow-lg">
-                <span className="font-hand text-xl font-bold text-red-500 tracking-widest uppercase">
-                  WATCH OUT!
-                </span>
-                <span className="font-pen text-xs text-red-300 font-semibold text-center leading-tight">
-                  Energy Exposure / CRE Loan Book Stress
-                </span>
+          {/* =========================================================================
+             LEFT COLUMN (BANK HEALTH -> NET PROFIT/SHARE PRICE -> LOAN BOOK)
+             ========================================================================= */}
+
+          {/* 1. BANK HEALTH (TOP LEFT) */}
+          <div className="absolute left-4 top-6 space-y-1">
+            <p className="font-hand text-[11px] font-bold text-amber-200/90 border-b border-amber-500/30 pb-0.5 inline-block">
+              BANK HEALTH
+            </p>
+            <div className="flex gap-2 pt-0.5">
+              {/* CET1 Ratio */}
+              <div className="w-20 p-2 bg-[#fde68a] shadow-md rounded-sm rotate-[-2deg] border border-amber-300 relative text-neutral-900">
+                <Pin />
+                <p className="font-hand text-[9px] text-neutral-800">
+                  CET1 Ratio
+                </p>
+                <p className="font-hand text-base font-bold text-neutral-950">
+                  {bank.cet1}%
+                </p>
+                <div className="flex items-center justify-between mt-1 text-[7px] font-hand text-neutral-700">
+                  <span>TARGET 12.5%</span>
+                  <CheckCircle2 size={10} className="text-emerald-700" />
+                </div>
+              </div>
+
+              {/* LCR */}
+              <div className="w-20 p-2 bg-[#bbf7d0] shadow-md rounded-sm rotate-[2deg] border border-emerald-300 relative text-neutral-900">
+                <Pin />
+                <p className="font-hand text-[9px] text-neutral-800">LCR</p>
+                <p className="font-hand text-base font-bold text-neutral-950">
+                  {bank.lcr}%
+                </p>
+                <div className="flex items-center justify-between mt-1 text-[7px] font-hand text-neutral-700">
+                  <span>TARGET 110%</span>
+                  <CheckCircle2 size={10} className="text-emerald-700" />
+                </div>
+              </div>
+
+              {/* MREL */}
+              <div className="w-20 p-2 bg-[#fde68a] shadow-md rounded-sm rotate-[-1deg] border border-amber-300 relative text-neutral-900">
+                <Pin />
+                <p className="font-hand text-[9px] text-neutral-800">MREL</p>
+                <p className="font-hand text-sm font-bold text-neutral-950 uppercase">
+                  {bank.mrel}
+                </p>
+                <div className="flex items-center justify-end mt-1">
+                  <CheckCircle2 size={10} className="text-emerald-700" />
+                </div>
               </div>
             </div>
-          )}
-
-          {/* POLAROID EVIDENCE PHOTO SNAPSHOT */}
-          <div className="absolute left-8 bottom-12 w-44 bg-white p-2 pb-6 shadow-2xl rotate-[-4deg] border border-neutral-300 select-none hidden sm:block">
-            <Pin />
-            <div className="h-28 w-full bg-gradient-to-br from-amber-600 via-orange-700 to-neutral-900 rounded-sm flex items-center justify-center">
-              <Flame
-                size={32}
-                className="text-amber-300 opacity-80 animate-pulse"
-              />
-            </div>
-            <p className="mt-2 text-center font-hand text-xs text-neutral-800 font-bold">
-              CA Wildfire Frontline '26
-            </p>
           </div>
 
-          {/* DROPPED SCENARIO CARDS (NEWSPAPER CLIPPINGS ON CORKBOARD) */}
-          <div className="absolute inset-0 p-8 flex flex-wrap gap-6 items-center justify-center pointer-events-none">
-            {droppedEvents.map((ev) => (
+          {/* 2. NET PROFIT & SHARE PRICE (CLEAR SPACING AT TOP-[180px]) */}
+          <div className="absolute left-4 top-[180px] flex gap-3">
+            <div className="w-32 p-2.5 bg-[#fbf8f0] shadow-md rounded-sm border border-neutral-300 rotate-[1deg] relative text-neutral-900">
+              <Pin color="red" />
+              <p className="font-hand text-[9px] font-bold text-neutral-700">
+                NET PROFIT (YTD)
+              </p>
+              <p className="font-hand text-lg font-bold text-neutral-950">
+                €4.2B
+              </p>
+              <p className="font-hand text-[8px] text-emerald-700 font-bold flex items-center gap-0.5 mt-0.5">
+                +6.2% vs Q1 2027 <TrendingUp size={10} />
+              </p>
+            </div>
+
+            <div className="w-32 p-2.5 bg-[#fbf8f0] shadow-md rounded-sm border border-neutral-300 rotate-[-1deg] relative text-neutral-900">
+              <Pin color="red" />
+              <p className="font-hand text-[9px] font-bold text-neutral-700">
+                SHARE PRICE
+              </p>
+              <p className="font-hand text-lg font-bold text-neutral-950">
+                €102.45
+              </p>
+              <p className="font-hand text-[8px] text-emerald-700 font-bold flex items-center gap-0.5 mt-0.5">
+                +1.85% Today <TrendingUp size={10} />
+              </p>
+            </div>
+          </div>
+
+          {/* 3. LOAN BOOK COMPOSITION (LOWER MID-LEFT - DARK CARD AT TOP-[310px]) */}
+          <div className="absolute left-4 top-[310px] w-[270px] p-3 bg-[#111625] text-slate-100 shadow-xl rounded-md border border-slate-700 rotate-[-1deg] relative">
+            <p className="font-display text-[10px] font-bold tracking-widest text-gold-300 border-b border-slate-700 pb-1 mb-2 uppercase">
+              LOAN BOOK COMPOSITION
+            </p>
+
+            <div className="flex items-center gap-3">
+              {/* Donut Chart with Center Total */}
+              <div className="relative grid h-20 w-20 place-items-center shrink-0">
+                <svg className="h-20 w-20 -rotate-90" viewBox="0 0 36 36">
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#1e293b"
+                    strokeWidth="6"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth="6"
+                    strokeDasharray="42 100"
+                    strokeDashoffset="0"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#ef4444"
+                    strokeWidth="6"
+                    strokeDasharray="25 100"
+                    strokeDashoffset="-42"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="6"
+                    strokeDasharray="15 100"
+                    strokeDashoffset="-67"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#f59e0b"
+                    strokeWidth="6"
+                    strokeDasharray="10 100"
+                    strokeDashoffset="-82"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#a78bfa"
+                    strokeWidth="6"
+                    strokeDasharray="5 100"
+                    strokeDashoffset="-92"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="#06b6d4"
+                    strokeWidth="6"
+                    strokeDasharray="3 100"
+                    strokeDashoffset="-97"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center leading-none">
+                  <span className="font-display text-[10px] font-extrabold text-gold-200">
+                    €780B
+                  </span>
+                  <span className="font-display text-[7px] tracking-widest text-slate-400 uppercase">
+                    TOTAL
+                  </span>
+                </div>
+              </div>
+
+              {/* Legend Grid */}
+              <div className="space-y-0.5 font-sans text-[9px] text-slate-300">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 bg-blue-500 rounded-xs" /> Corporate
+                  42%
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 bg-red-500 rounded-xs" /> Retail 25%
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 bg-emerald-500 rounded-xs" />{" "}
+                  Mortgage 15%
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 bg-amber-500 rounded-xs" /> CRE 10%
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 bg-purple-400 rounded-xs" /> Energy
+                  5%
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 bg-cyan-400 rounded-xs" /> Technology
+                  3%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. ESG & CUSTOMER CONFIDENCE STICKIES (BOTTOM LEFT) */}
+          <div className="absolute left-4 bottom-3 flex items-center gap-3 text-neutral-900">
+            <div className="w-24 p-2 bg-[#dcfce7] shadow-md rounded-sm rotate-[-2deg] border border-emerald-300">
+              <Pin />
+              <p className="font-hand text-[9px] text-neutral-800 font-bold">
+                ESG RATING
+              </p>
+              <p className="font-hand text-xl font-bold text-emerald-800">
+                {bank.esgRating}
+              </p>
+            </div>
+
+            <div className="w-28 p-2 bg-[#dbeafe] shadow-md rounded-sm rotate-[2deg] border border-blue-300">
+              <Pin />
+              <p className="font-hand text-[9px] text-neutral-800 font-bold">
+                CUSTOMER CONFIDENCE
+              </p>
+              <p className="font-hand text-base font-bold text-blue-900">
+                {bank.customerConfidence}% 🙂
+              </p>
+            </div>
+          </div>
+
+          {/* =========================================================================
+             PROMINENT CENTER SCENARIO CARD (PROMINENT & CENTERED)
+             ========================================================================= */}
+
+          <div className="absolute left-[50%] top-[48%] -translate-x-1/2 -translate-y-1/2 pointer-events-auto z-20">
+            {aggregatedImpactSummary ? (
               <motion.div
-                key={ev.id}
-                initial={{ scale: 0.8, opacity: 0 }}
+                initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 onClick={runSimulation}
-                className="pointer-events-auto cursor-pointer w-64 bg-[#efe7d2] p-4 shadow-2xl rounded-sm border border-neutral-400 rotate-1 hover:rotate-0 transition-transform relative"
+                className="w-80 bg-[#fdfbf7] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] rounded border-2 border-red-800/40 rotate-[-1deg] cursor-pointer hover:rotate-0 hover:scale-105 transition-all relative text-neutral-900"
               >
                 <Pin />
                 <Paperclip
                   className="absolute -top-3 right-3 text-neutral-600 rotate-45"
-                  size={18}
+                  size={20}
                 />
 
-                <p className="font-display text-[9px] tracking-widest text-neutral-600 border-b border-neutral-400 pb-1">
-                  FINANCIAL TIMES WIRE
-                </p>
-                <p className="font-serif text-sm font-bold text-neutral-900 mt-1">
-                  {ev.title}
-                </p>
-                <p className="font-serif text-[10px] text-neutral-700 italic line-clamp-2 mt-1">
-                  {ev.summary}
-                </p>
-
-                <div className="mt-2 pt-2 border-t border-dashed border-neutral-400 flex items-center justify-between text-[10px] font-mono">
-                  <span className="text-red-700 font-bold">
-                    Credit: {ev.creditImpact}
-                  </span>
-                  <span className="text-neutral-600">{ev.horizon}</span>
+                <div className="border-b border-neutral-300 pb-1 mb-2">
+                  <p className="font-hand text-[10px] font-bold tracking-widest text-neutral-600">
+                    FINANCIAL TIMES WIRE ({droppedEvents.length} ACTIVE)
+                  </p>
+                  <p className="font-serif text-base font-extrabold text-neutral-900 leading-tight">
+                    {aggregatedImpactSummary.title}
+                  </p>
                 </div>
 
-                <button className="mt-3 w-full bg-red-800 text-white font-display text-[9px] py-1.5 rounded tracking-wider shadow-md hover:bg-red-700 transition-colors flex items-center justify-center gap-1">
-                  <Eye size={12} /> LAUNCH MEDIA REACTION ▸
+                {/* Newspaper Photo Banner */}
+                <div className="h-24 w-full bg-gradient-to-br from-amber-800 via-red-900 to-neutral-950 rounded-sm p-3 flex flex-col justify-end text-white my-2 shadow-inner">
+                  <p className="font-serif text-xs font-bold leading-tight drop-shadow">
+                    {aggregatedImpactSummary.headline}
+                  </p>
+                </div>
+
+                <div className="mt-2 space-y-1 font-serif text-xs text-neutral-800">
+                  <div className="flex justify-between border-b border-neutral-300 pb-1">
+                    <span>Aggregated Credit Impact:</span>
+                    <strong className="text-red-700 font-bold">
+                      {aggregatedImpactSummary.totalCreditLoss}
+                    </strong>
+                  </div>
+                  <div className="flex justify-between border-b border-neutral-300 pb-1">
+                    <span>Key Sectors:</span>
+                    <strong className="text-neutral-900">
+                      {aggregatedImpactSummary.industries.join(", ") ||
+                        "Banking"}
+                    </strong>
+                  </div>
+                </div>
+
+                <button className="mt-3 w-full bg-red-800 text-white font-hand text-sm py-2 rounded shadow-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-1.5 font-bold">
+                  <Eye size={14} /> LAUNCH MEDIA REACTION ▸
                 </button>
               </motion.div>
-            ))}
-          </div>
-
-          {droppedEvents.length === 0 && (
-            <div className="grid h-full place-items-center text-center p-6">
-              <div className="bg-black/50 p-4 rounded-xl border border-white/10 backdrop-blur max-w-md">
-                <AlertCircle className="mx-auto text-gold-300 mb-2" size={24} />
-                <p className="font-serif text-sm text-slate-200">
+            ) : (
+              <div className="w-72 p-4 bg-[#fdfbf7]/90 rounded border-2 border-dashed border-neutral-400 text-center shadow-lg text-neutral-800">
+                <p className="font-hand text-xs text-neutral-700">
                   Drag scenario cards from the left sidebar onto this board to
-                  evaluate compound systemic risk.
+                  aggregate risk.
                 </p>
               </div>
+            )}
+          </div>
+
+          {/* POLAROID PHOTO SNAPSHOT (CENTER TOP-RIGHT) */}
+          <div className="absolute left-[67%] top-12 w-36 bg-white p-2 pb-5 shadow-xl rotate-[3deg] border border-neutral-300 text-neutral-900">
+            <Pin />
+            <div className="h-24 w-full bg-gradient-to-br from-orange-600 via-amber-700 to-neutral-900 rounded-sm flex items-center justify-center">
+              <span className="text-amber-200 text-2xl font-bold">🔥</span>
             </div>
-          )}
+            <p className="font-hand text-[10px] text-center font-bold text-neutral-800 mt-1">
+              California Wildfires
+            </p>
+          </div>
+
+          {/* Sticky note overlapping Polaroid */}
+          <div className="absolute left-[70%] top-[135px] w-24 p-2 bg-[#fde68a] shadow-lg rounded-sm rotate-[-4deg] border border-amber-300 text-neutral-900">
+            <Pin />
+            <p className="font-hand text-[10px] font-bold text-red-800 leading-tight">
+              Review Energy Exposure!
+            </p>
+          </div>
+
+          {/* Bottom Center Stickies */}
+          <div className="absolute left-[38%] bottom-3 flex items-center gap-3 text-neutral-900">
+            {/* Upcoming Board Meeting */}
+            <div className="w-28 p-2 bg-[#fde68a] shadow-md rounded-sm rotate-[2deg] border border-amber-300">
+              <Pin />
+              <p className="font-hand text-[9px] font-bold text-neutral-800 leading-tight">
+                UPCOMING BOARD MEETING
+              </p>
+              <p className="font-hand text-xs font-bold text-red-800 mt-0.5">
+                May 15, 2027
+              </p>
+            </div>
+
+            {/* MREL Review Sticky */}
+            <div className="w-28 p-2 bg-[#fde68a] shadow-md rounded-sm rotate-[3deg] border border-amber-300">
+              <Pin />
+              <p className="font-hand text-[9px] font-bold text-neutral-800">
+                MREL REVIEW 2027
+              </p>
+              <p className="font-hand text-[10px] text-emerald-800 font-bold mt-0.5">
+                On Track ✔
+              </p>
+            </div>
+          </div>
+
+          {/* =========================================================================
+             RIGHT COLUMN (TOP PRIORITIES, KEY RISKS, ATHENA MEMO)
+             ========================================================================= */}
+
+          {/* 8. TOP PRIORITIES (TOP RIGHT) */}
+          <div className="absolute right-4 top-8 w-44 p-3 bg-[#fdfbf7] shadow-md rounded border border-neutral-300 rotate-[1deg] text-neutral-900">
+            <Pin color="blue" />
+            <p className="font-hand text-xs font-bold text-neutral-900 border-b border-neutral-300 pb-1 mb-1">
+              TOP PRIORITIES
+            </p>
+            <ol className="font-hand text-[11px] text-neutral-800 space-y-0.5 list-decimal pl-4">
+              <li>Capital Strength</li>
+              <li>Liquidity</li>
+              <li>Credit Quality</li>
+              <li>ESG Leadership</li>
+              <li>Client Trust</li>
+            </ol>
+          </div>
+
+          {/* 9. KEY RISKS (MIDDLE RIGHT) */}
+          <div className="absolute right-4 top-[170px] w-48 p-3 bg-white shadow-md rounded border border-neutral-300 rotate-[-1deg] text-neutral-900">
+            <Pin color="blue" />
+            <p className="font-hand text-xs font-bold text-neutral-900 border-b border-neutral-300 pb-1 mb-1.5">
+              KEY RISKS
+            </p>
+            <div className="space-y-1 font-hand text-[11px] text-neutral-800">
+              <div className="flex justify-between items-center">
+                <span>1. Climate Risk</span>
+                <span className="text-[10px]">🔴 🔴 🔴</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>2. Credit Risk</span>
+                <span className="text-[10px]">🔴 🔴 🟡</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>3. Market Risk</span>
+                <span className="text-[10px]">🔴 🟡 🟢</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>4. Liquidity Risk</span>
+                <span className="text-[10px]">🔴 🟢 🟢</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>5. Cyber Risk</span>
+                <span className="text-[10px]">🔴 🟢 🟢</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 10. NOTES FROM ATHENA MEMO (BOTTOM RIGHT) */}
+          <div className="absolute right-4 bottom-3 w-56 p-3 bg-[#fde68a] shadow-xl rounded-sm rotate-[1deg] border border-amber-300 text-neutral-900">
+            <Pin />
+            <div className="flex items-center gap-1.5 text-amber-900 mb-1 border-b border-amber-400 pb-1">
+              <Sparkles size={12} />
+              <span className="font-hand text-xs font-bold">
+                Notes from Athena
+              </span>
+            </div>
+            <p className="font-pen text-xs text-neutral-900 leading-snug">
+              "Climate exposure increasing. Review CA CRE portfolio
+              immediately."
+            </p>
+            <p className="font-hand text-right text-[10px] italic text-neutral-700 mt-2">
+              – Athena
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* 5-STAGE MEDIA REACTION MODAL */}
+      {/* 5-STAGE MEDIA REACTION MODAL OVERLAY */}
       {activeModalEvents && (
         <ScenarioSequenceModal
           events={activeModalEvents}
@@ -432,14 +680,14 @@ export function StrategicBoard() {
   );
 }
 
-function Pin({ color = "red" }: { color?: "red" | "gold" }) {
+function Pin({ color = "red" }: { color?: "red" | "blue" }) {
   return (
     <MapPin
-      size={14}
+      size={12}
       className={`absolute -top-2 left-1/2 -translate-x-1/2 ${
-        color === "gold" ? "text-amber-500" : "text-red-600"
+        color === "blue" ? "text-sky-600" : "text-red-600"
       } drop-shadow`}
-      fill={color === "gold" ? "#f59e0b" : "#dc2626"}
+      fill={color === "blue" ? "#0284c7" : "#dc2626"}
     />
   );
 }
