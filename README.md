@@ -54,7 +54,29 @@ OPENAI_MODEL=gpt-5.4-mini
 ```
 
 ATHENA's local `/api/athena` endpoint runs through the Vite development server, so
-use `npm run dev` while developing. The browser never receives the API key.
+use `npm run dev` while developing. In production (Vercel) the same endpoint is served
+by the serverless function in [`api/athena.ts`](api/athena.ts). The browser never
+receives the API key in either case.
+
+## 🚀 Deployment (Vercel + CI/CD)
+
+Every push to `main` and every pull request runs the
+[`CI & Deploy`](.github/workflows/deploy.yml) workflow: it type-checks and builds the
+app, then deploys to Vercel — **preview** deployments for PRs and a **production**
+deployment for `main`.
+
+**One-time setup:**
+
+1. Create the project on Vercel (`vercel link`, or import the repo in the dashboard).
+2. In the Vercel project add the environment variables from `.env.example`
+   (`OPENAI_API_KEY`, optionally `OPENAI_MODEL`) for the Production and Preview scopes.
+3. In GitHub → repo **Settings → Secrets and variables → Actions**, add three secrets:
+   - `VERCEL_TOKEN` — a token from <https://vercel.com/account/tokens>
+   - `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` — found in `.vercel/project.json`
+     after running `vercel link` locally.
+
+Until those secrets exist the deploy job is skipped (the build check still runs), so
+CI stays green.
 
 ### Corporate network note
 If `npm install` fails behind a proxy / self-signed certificate, try:
